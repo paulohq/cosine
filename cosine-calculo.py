@@ -19,9 +19,9 @@ class text(object):
         lista = []
         for linha in file_reader:
             vector = []
-            print(linha)
+            #print(linha)
             vector = list(map(int, linha.rsplit(" ")))
-            print(vector)
+            #print(vector)
 
             lista.append(vector)
         file_reader.close()
@@ -72,10 +72,17 @@ class cosine(object):
     def suffix(self, x, p):
         return x[-p:]
 
+    # calcula o cosseno entre um vetor especificado e os outros vetores da matriz de features (inclusive com ele mesmo).
+    # x: índice do vetor que será comparado com os outros vetores.
+    # matriz: matriz de features.
+    def cosine_between_vectors(self, i, matriz):
+        for linha in range(feat.__len__()):
+            print('Cosseno de', i, 'com', linha , ":", cosine.cos(matriz[i], matriz[linha]))
+
 read = text()
 cosine = cosine()
 
-feat = read.read_text("enwiki-vector-20.txt")
+feat = read.read_text("enwiki-vector-100.txt")
 
 x = [24,2,20,2]
 y = [0.01,0.01,0.01,0.01]
@@ -104,11 +111,19 @@ print(cosine.dot(xu,yu))
 print(cosine.cos(x,z))
 print(cosine.dot(xu,zu))
 
-print('Coseno com os vetores sem normalização:')
-#print('Coseno entre mesmo vetor:', cosine.cos(feat[0], feat[0]))
-for i in range(feat.__len__()):
-    print('Coseno de 0 com ', i , ":", cosine.cos(feat[0], feat[i]))
+print('Cosseno com os vetores sem normalização:')
+cosine.cosine_between_vectors(0, feat)
 
-print('Coseno com os vetores já normalizados:')
-for i in range(featU.__len__()):
-    print('Coseno de 0 com ', i , ":", cosine.dot(featU[0], featU[i]))
+print('Cosseno com os vetores com normalização:')
+cosine.cosine_between_vectors(0, featU)
+
+
+for i in range(feat.__len__()):
+    #if (i == 0 or i == 1 or i == 90):
+        cont = 0
+        for j in range(feat[i].__len__()):
+            if (feat[i][j] != 0):
+                #print('feature (', i, ",", j,  "):", feat[i][j])
+                cont += 1
+        print('qtde features > 0 do vetor', i, ': ', cont)
+
