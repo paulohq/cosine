@@ -82,7 +82,7 @@ class cosine(object):
 read = text()
 cosine = cosine()
 
-feat = read.read_text("enwiki-vector-100.txt")
+feat = read.read_text("enwiki-vector-20.txt")
 
 x = [24,2,20,2]
 y = [0.01,0.01,0.01,0.01]
@@ -90,11 +90,17 @@ z = [24,1,10,1]
 
 print(cosine.prefix(x,2))
 print(cosine.suffix(x,2))
+print('---------------')
 
+for i in range(feat.__len__()):
+    print(cosine.prefix(feat[i], round(feat[i].__len__()/2)))
+    print(cosine.suffix(feat[i], round(feat[i].__len__()/2)))
+print('---------------')
 
 featU = cosine.toUnit(feat)
 print(featU)
 print(cosine.norm(featU))
+print('---------------')
 
 #print('norma featU:', numpy.sqrt(numpy.dot(featU, featU)))
 
@@ -104,9 +110,11 @@ zu = cosine.toUnit(z)
 print(xu, cosine.norm(xu))
 print(yu, cosine.norm(yu))
 print(zu, cosine.norm(zu))
+print('---------------')
 
 print(cosine.cos(x,y))
 print(cosine.dot(xu,yu))
+print('---------------')
 
 print(cosine.cos(x,z))
 print(cosine.dot(xu,zu))
@@ -116,6 +124,7 @@ cosine.cosine_between_vectors(0, feat)
 
 print('Cosseno com os vetores com normalização:')
 cosine.cosine_between_vectors(0, featU)
+print('---------------')
 
 
 for i in range(feat.__len__()):
