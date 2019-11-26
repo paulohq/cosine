@@ -85,17 +85,25 @@ class cosine(object):
     # calcula o cosseno entre um vetor especificado e os outros vetores da matriz de features (inclusive com ele mesmo).
     # x: índice do vetor que será comparado com os outros vetores.
     # matriz: matriz de features.
-    def cosine_between_vectors(self, i, matriz):
-        for linha in range(matriz.__len__()):
-            print('Cosseno de', i, 'com', linha , ":", cosine.cos(matriz[i], matriz[linha]))
+    #def cosine_between_vectors(self, i, matriz):
+    #    for linha in range(matriz.__len__()):
+    #        print('Cosseno de', i, 'com', linha , ":", cosine.cos(matriz[i], matriz[linha]))
+
+    def cosine_between_vectors(self, v1, v2):
+        print('Cosseno entre v1 e v2:', cosine.cos(v1, v2))
 
     # calcula o produto escalar entre um vetor especificado e os outros vetores da matriz de features (inclusive com ele mesmo).
-    # Como os vetores já estão normalizados então o cálculo será o cosseno.
+    # Como os vetores já estão normalizados então o resultado do cálculo ( x * y ) será igual ao resultado do cálcuo do cosseno ( x * y/(norma(x) * norma(y)) ).
     # i: índice do vetor que será comparado com os outros vetores.
     # matriz: matriz de features.
-    def dot_between_vectors(self, i, matriz):
-        for linha in range(matriz.__len__()):
-            print('Cosseno de', i, 'com', linha , ":", cosine.dot(matriz[i], matriz[linha]))
+    #def dot_between_vectors(self, i, matriz):
+    #    for linha in range(matriz.__len__()):
+    #        print('Cosseno de', i, 'com', linha , ":", cosine.dot(matriz[i], matriz[linha]))
+
+    def dot_between_vectors(self, v1, v2):
+        x = cosine.dot(v1, v2)
+        print('Cosseno entre v1 e v2:', x)
+        return x
 
     # Verifica a intersecção entre o vetor v (consulta) e a matriz (dataset).
     # v: vetor consulta
@@ -112,7 +120,7 @@ class cosine(object):
             print('intersecção entre o vetor v e linha ', i, ' da matriz: ', intersect)
             # Calula o tamanho do prefixo para o vetor i da matriz com a fórmula: (h - k + 1)
             # h: o tamanho do vetor
-            # k: a intersecção entre o veotr v e o vetor i da matriz
+            # k: a intersecção entre o vetor v e o vetor i da matriz
             prefixo = matriz[i].__len__() - intersect + 1
             vet_prefixo.append(prefixo)
             print('tamanho do prefixo linha ', i, ' da matriz: ', prefixo)
@@ -131,22 +139,28 @@ class cosine(object):
             # Recupera o sufixo do vetor x de acordo com o tamanho do prefixo que está no vetor prefixo[linha].
             q_sufixo = x[prefixo[linha]:]
             # Recupera o prefixo do vetor atual da matriz[linha] de acordo com o tamanho do prefixo que está no vetor prefixo[linha].
-            v = matriz[i][0:prefixo[linha]]
+            v = matriz[linha][0:prefixo[linha]]
             # Recupera o sufixo do vetor atual da matriz[linha] de acordo com o tamanho do prefixo que está no vetor prefixo[linha].
-            v_sufixo = matriz[i][prefixo[linha]:]
-            print('Cosseno do prefixo vetor ''x'' com vetor ', linha , " da matriz:", cosine.dot(q, v))
+            v_sufixo = matriz[linha][prefixo[linha]:]
+            cos_prefixo = cosine.dot(q, v)
+            print('Cosseno do prefixo vetor ''x'' com vetor ', linha , " da matriz:", cos_prefixo)
             intersect = 0
             for j in range(v.__len__()):
                 if ((v[j] != 0) and (q[j] != 0)):
                     intersect += 1
             print('intersecção entre prefixo do vetor v e linha ', linha, ' da matriz: ', intersect)
-            print('Cosseno do sufixo vetor ''x'' com vetor ', linha , " da matriz:", cosine.dot(q_sufixo, v_sufixo))
+            cos_sufixo = cosine.dot(q_sufixo, v_sufixo)
+            print('Cosseno do sufixo vetor ''x'' com vetor ', linha , " da matriz:", cos_sufixo)
             intersect = 0
             for j in range(v_sufixo.__len__()):
                 if ((v_sufixo[j] != 0) and (q_sufixo[j] != 0)):
                     intersect += 1
             print('intersecção entre sufixo do vetor v e linha ', linha, ' da matriz: ', intersect)
-            print('---')
+            print('Cosseno entre o vetor ''x'' e o vetor ', linha, " da matriz: ", cos_prefixo + cos_sufixo)
+            cosseno_total = cosine.dot_between_vectors(x, matriz[linha])
+            print("Cosseno total: {0:18.16f},  Cosseno do prefixo + sufixo: {1:18.16f},  Diferença: {2:18.16f}".format(cosseno_total, cos_prefixo + cos_sufixo, cosseno_total - (cos_prefixo + cos_sufixo) ))
+            print('---------------------------------------------------------------------------------------')
+
 
         print('-------------')
 
@@ -154,29 +168,34 @@ class cosine(object):
 read = text()
 cosine = cosine()
 
-feat = np.array(read.read_text("enwiki-vector-20.txt"))
+feat = np.array(read.read_text("enwiki-vector-4.txt"))
+
+#feat = np.array([[1,2,3,4,5,6,7,8,9,10],
+#                [0,0,0,0,0,1,2,3,4,5],
+#                [0,0,0,0,0,6,7,8,9,10],
+#                [1,2,3,4,5,1,2,3,4,5]])
 
 x = np.array([24,2,20,2])
 y = np.array([0.01,0.01,0.01,0.01])
 z = np.array([24,1,10,1])
 
-a = np.array([1,2,3,4,5,6,7,8,9,10,11])
+#a = np.array([1,2,3,4,5,6,7,8,9,10,11])
 
-print(cosine.prefix(a, round(a.__len__()/2)))
-print(cosine.suffix(a, round(a.__len__()/2) - 1))
+#print(cosine.prefix(a, round(a.__len__()/2)))
+#print(cosine.suffix(a, round(a.__len__()/2) - 1))
 
-print(cosine.prefix(x,2))
-print(cosine.suffix(x,2))
-print('---------------')
+#print(cosine.prefix(x,2))
+#print(cosine.suffix(x,2))
+#print('---------------')
 
-print('Tamanho do vetor feat: %+d' % feat.__len__())
-for i in range(feat.__len__()):
-    print('Tamanho do vetor feat[%d]: %d' % (i, feat[i].__len__()))
-    print('Prefixo do vetor feat[%d]: %s' % (i, str(cosine.prefix(feat[i], round(feat[i].__len__()/2)))))
-    print('Tamanho do prefixo do vetor feat[%d]: %d' % (i, cosine.prefix(feat[i], round(feat[i].__len__()/2)).__len__()))
-    print('Sufixo  do vetor feat[%d]: %s' % (i, str(cosine.suffix(feat[i], round(feat[i].__len__()/2) - 1))))
-    print('Tamanho do sufixo do vetor feat[%d]: %d' % (i, cosine.suffix(feat[i], round(feat[i].__len__()/2)).__len__() -1 ))
-print('---------------')
+#print('Tamanho do vetor feat: %+d' % feat.__len__())
+#for i in range(feat.__len__()):
+#    print('Tamanho do vetor feat[%d]: %d' % (i, feat[i].__len__()))
+#    print('Prefixo do vetor feat[%d]: %s' % (i, str(cosine.prefix(feat[i], round(feat[i].__len__()/2)))))
+#    print('Tamanho do prefixo do vetor feat[%d]: %d' % (i, cosine.prefix(feat[i], round(feat[i].__len__()/2)).__len__()))
+#    print('Sufixo  do vetor feat[%d]: %s' % (i, str(cosine.suffix(feat[i], round(feat[i].__len__()/2) - 1))))
+#    print('Tamanho do sufixo do vetor feat[%d]: %d' % (i, cosine.suffix(feat[i], round(feat[i].__len__()/2)).__len__() -1 ))
+#print('---------------')
 
 featU = cosine.toUnitMatrix(feat)
 print(feat)
@@ -188,29 +207,31 @@ print('---------------')
 #print('norma featU:', np.sqrt(np.dot(featU, featU)))
 
 #Normaliza os vetores.
-xu = cosine.toUnit(x)
-yu = cosine.toUnit(y)
-zu = cosine.toUnit(z)
+#xu = cosine.toUnit(x)
+#yu = cosine.toUnit(y)
+#zu = cosine.toUnit(z)
 #
-print(xu, cosine.norm(xu))
-print(yu, cosine.norm(yu))
-print(zu, cosine.norm(zu))
-print('---------------')
+#print(xu, cosine.norm(xu))
+#print(yu, cosine.norm(yu))
+#print(zu, cosine.norm(zu))
+#print('---------------')
 #Calcula o cosseno entre os vetores x e y (não normalizados).
-print(cosine.cos(x,y))
+#print(cosine.cos(x,y))
 #Calcula o produto escalar entre os vetores xu e yu (já normalizados)
-print(cosine.dot(xu,yu))
-print('---------------')
+#print(cosine.dot(xu,yu))
+#print('---------------')
 #Calcula o cosseno entre os vetores x e z (não normalizados).
-print(cosine.cos(x,z))
+#print(cosine.cos(x,z))
 #Calcula o produto escalar entre os vetores xu e zu (já normalizados)
-print(cosine.dot(xu,zu))
-print('---------------')
+#print(cosine.dot(xu,zu))
+#print('---------------')
 print('Cosseno com os vetores sem normalização:')
-cosine.cosine_between_vectors(0, feat)
+for linha in range(feat.__len__()):
+    cosine.cosine_between_vectors(feat[0], feat[linha])
 
 print('Cosseno com os vetores com normalização:')
-cosine.dot_between_vectors(0, featU)
+for linha in range(feat.__len__()):
+    cosine.dot_between_vectors(featU[0], featU[linha])
 print('---------------')
 
 #seta a variavel consulta com o primeiro vetor da matriz featU.

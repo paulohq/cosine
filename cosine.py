@@ -186,7 +186,7 @@ read = text()
 cosine = cosine()
 pre = pre_processing()
 
-cosine.corpus = read.read_text("enwiki-20.txt")
+cosine.corpus = read.read_text("enwiki-4.txt")
 
 cosine.norm_corpus = pre.normalize_corpus(cosine.corpus)
 
@@ -219,7 +219,7 @@ for row in range(features.shape[0]):
 
 print (feat)
 
-read.write_text(feat, "enwiki-vector.txt")
+read.write_text(feat, "enwiki-vector-4.txt")
 
 
 new_doc_features = bow_vectorizer.transform(new_doc)

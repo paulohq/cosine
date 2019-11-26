@@ -13,6 +13,7 @@ cmake-build-debug
 .virtualenv/*
 Subtask-A-master*/*
 Subtask-B-master*/*
+enwiki-vector-4.txt
 enwiki-vector-100.txt
 enwiki-vector-1000.txt
 __pycache*
