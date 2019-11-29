@@ -50,6 +50,8 @@ class cosine(object):
     def __init__(self):
         self.corpus = []
         self.norm_corpus = []
+        self.Index = [[]]
+        self.se = [[]]
 
     def norm(self, x):
         return np.linalg.norm(x)
@@ -177,16 +179,19 @@ class cosine(object):
                 b -= d[j] * d[j]
                 #Calcula a norma do sufixo do vetor d a partir da característica j.
                 sufixo_d = cosine.norm(d[j+1:])
-                #indexa o documento d, o valor da característica j e o sufixo de d (a partir da característica j).
-                r = [id_documento, d[j], sufixo_d]
-                Index.append(r)
-            else:
-                break
+                #norma = cosine.norm(d)
+                #id da característica, o valor da característica e a norma do sufixo de (a partir da característica j).
+                r = [j, d[j], sufixo_d]
+                # indexa o id da característica (mas precisa ser o id do documento), o valor da característica j e o sufixo de d (a partir da característica j).
+                self.Index.append(r)
+            #else:
+            #    break
 
         #Armazena o sufixo do vetor d no vetor suffix estimate.
-        se.append(sufixo_d)
+        se_aux = [id_documento, sufixo_d]
+        self.se.append(se_aux)
         print("suffix extimate:", se)
-        return se
+        #return Index, se
 
 
 read = text()
@@ -210,11 +215,11 @@ feat = np.array([[1,2,3,4,5,6,7,8,9,10],
 #print('---------------')
 
 featU = cosine.toUnitMatrix(feat)
-id_documento = 1
 Index = [[] ]
 se = [[]]
 threshold = 0.8
-se = cosine.index(id_documento, featU[0], Index, se, threshold)
+for i in range (featU.__len__()):
+    cosine.index(i, featU[i], Index, se, threshold)
 
 print('Cosseno com os vetores sem normalização:')
 for linha in range(feat.__len__()):
