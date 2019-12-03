@@ -170,6 +170,8 @@ class cosine(object):
     def index(self, id_documento, d, Index, se, t):
         #norma do sufixo do vetor recebe o valor máximo
         b = 1
+        #variável auxiliar para armazenar a posiçaõ da última característica do prefixo.
+        j_aux = 0
         #Laço para percorres todas as características do vetor d
         for j in range(d.__len__()):
             #Se o valor da característica do vetor d for maior que zero e a raiz quadrada do sufixo do vetor d for maior ou igual ao threshold
@@ -179,30 +181,73 @@ class cosine(object):
                 b -= d[j] * d[j]
                 #Calcula a norma do sufixo do vetor d a partir da característica j.
                 sufixo_d = cosine.norm(d[j+1:])
+                j_aux = j
                 #norma = cosine.norm(d)
-                #id da característica, o valor da característica e a norma do sufixo de (a partir da característica j).
-                r = [j, d[j], sufixo_d]
-                # indexa o id da característica (mas precisa ser o id do documento), o valor da característica j e o sufixo de d (a partir da característica j).
+                #id do documento, id da característica, o valor da característica e a norma do sufixo de (a partir da característica j).
+                r = [id_documento, j, d[j], sufixo_d]
+                # indexa o id do documento, o id da característica (mas precisa ser o id do documento), o valor da característica j e o sufixo de d (a partir da característica j).
                 self.Index.append(r)
             #else:
             #    break
 
-        #Armazena o sufixo do vetor d no vetor suffix estimate.
-        se_aux = [id_documento, sufixo_d]
+        #Armazena o id do documento, a norma do sufixo e o posição da última posição do prefixo indexado + 1 que é a primeira posição do sufixo.
+        se_aux = [id_documento, sufixo_d, j_aux]
+        # Armazena o sufixo do vetor d no vetor suffix estimate.
         self.se.append(se_aux)
         print("suffix extimate:", se)
         #return Index, se
+
+    def findNeighbors(self, d, Index, se, t):
+        r = 1
+        acum = np.array[[]]
+        A = np.array[[]]
+        #Candidate generation
+        #Percorre o array Index
+        for j in range(self.Index.__len__()):
+            #Se o valor da característica for maior que zero então faça.
+            if (d[j] > 0):
+                #para cada coluna do vetor Index
+                for coluna in Index:
+                    #Se o acumulado do documento maior que zero ou acumulado do documento diferente de zero e a norma do sufixo maior que threshold.
+                    if (((A[coluna[0]] > 0) or (A[coluna[0]] != 0)) and (math.sqrt(r) >= t)):
+                        acum[coluna[0]] = acum[coluna[0]] + (d[j] * coluna[2])
+
+                        aux = [coluna[0], acum[coluna[0]]]
+                        #Acumulado do documento recebe acumulado do documento + similaridade entre a característica de di e dc.
+                        A[coluna[0]].append(aux)
+                        #calcula a norma do sufixo do vetor d a partir da característica j + 1.
+                        norma_di = cosine.norm(d[j+1:])
+                        #Se acumulado do documento somado com norma do sufixo de di multiplicado com a norma do sufixo de dc é menor que o threshold
+                        #então zera o acumulado (funciona como poda).
+                        if ((A[coluna[0]]) + (norma_di * coluna[3]) < t):
+                            A[coluna[0]] = 0
+            #subtrai da norma do sufixo o valor da característica j ao quadrado.
+            r = r - (d[j] * d[j])
+
+        #Candidate verification
+        for k in range(A.__len__()):
+            #Se o valor acumulado (na fase candidate generation) do candidato k for maior que zero então faça.
+            if (A[k][1] > 0):
+                #Se o valor acumulado do candidado k somado com o suffix estimate do candidato k for maior que o threshold então
+                #se for menor o candidato será podado, pois passa para o próximo candidado no loop.
+                if (A[k][1] + cosine.se[k] >= t):
+                    #Percorre as características do sufixo do vetor.
+                    for j in range( cosine.se[k][2], d.__len__() ):
+                        if ()
+                        A[k] = A[k]
+
+
 
 
 read = text()
 cosine = cosine()
 
-#feat = np.array(read.read_text("enwiki-vector-4.txt"))
+feat = np.array(read.read_text("enwiki-vector-4.txt"))
 
-feat = np.array([[1,2,3,4,5,6,7,8,9,10],
-                [0,0,0,0,0,1,2,3,4,5],
-                [0,0,0,0,0,6,7,8,9,10],
-                [1,2,3,4,5,1,2,3,4,5]])
+#feat = np.array([[1,2,3,4,5,6,7,8,9,10],
+#                [0,0,0,0,0,1,2,3,4,5],
+#                [0,0,0,0,0,6,7,8,9,10],
+#                [1,2,3,4,5,1,2,3,4,5]])
 
 
 #a = np.array([1,2,3,4,5,6,7,8,9,10,11])
