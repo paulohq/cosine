@@ -52,6 +52,7 @@ class cosine(object):
         self.norm_corpus = []
         self.Index = [[]]
         self.se = [[]]
+        self.Ndi = [[]]
 
     def norm(self, x):
         return np.linalg.norm(x)
@@ -178,7 +179,9 @@ class cosine(object):
             #então indexa o documento d, o valor da característica j e o sufixo de d (a partir da característica j).
             if ((d[j] > 0) & ( math.sqrt(b) >= t)):
                 #calcula o valor da característica j ao quadrado e subtrai da norma do sufixo
-                b -= d[j] * d[j]
+                b = b - (d[j] * d[j])
+                if (b < 0):
+                    b = 0
                 #Calcula a norma do sufixo do vetor d a partir da característica j.
                 sufixo_d = cosine.norm(d[j+1:])
                 j_aux = j
@@ -233,8 +236,23 @@ class cosine(object):
                 if (A[k][1] + cosine.se[k] >= t):
                     #Percorre as características do sufixo do vetor.
                     for j in range( cosine.se[k][2], d.__len__() ):
-                        if ()
-                        A[k] = A[k]
+                        if (d[j] > 0):
+                            A[k] = A[k] + d[j] * dc[j]
+
+                        # Calcula a norma do sufixo do vetor d a partir da característica j.
+                        norma_sufixo_d = cosine.norm(d[j:])
+                        # Calcula a norma do sufixo do vetor dc a partir da característica j.
+                        norma_sufixo_dc = cosine.norm(dc[j:])
+                        #Se o valor acumulado somado como a norma do sufixo de d multiplicado com a norma do sufixo de dc
+                        #for menor que threshold então passa para o próximo candidato do vetor acumulado.
+                        if (A[k] + (norma_sufixo_d * norma_sufixo_dc) < t):
+                            break
+                    # Se o acumulado do candidato for maior que threshold então adiciona o candidato e o seu valor acumulado
+                    #no vetor de vetores similares de di.
+                    if (A[k] > t):
+                        self.Ndi.append(k, A[k])
+
+                    #    A[k] = A[k]
 
 
 
@@ -242,8 +260,12 @@ class cosine(object):
 read = text()
 cosine = cosine()
 
-feat = np.array(read.read_text("enwiki-vector-4.txt"))
+#feat = np.array(read.read_text("enwiki-vector-4.txt"))
 
+feat = np.array([[5,0,9,6]
+                ,[0,8,4,7]
+                ,[3,4,8,0]
+                ,[9,3,7,5]])
 #feat = np.array([[1,2,3,4,5,6,7,8,9,10],
 #                [0,0,0,0,0,1,2,3,4,5],
 #                [0,0,0,0,0,6,7,8,9,10],
@@ -260,6 +282,9 @@ feat = np.array(read.read_text("enwiki-vector-4.txt"))
 #print('---------------')
 
 featU = cosine.toUnitMatrix(feat)
+for i in range(featU.__len__()):
+    featNorm = cosine.norm(featU[i])
+
 Index = [[] ]
 se = [[]]
 threshold = 0.8
