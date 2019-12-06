@@ -200,55 +200,66 @@ class cosine(object):
         print("suffix extimate:", self.se)
         #return Index, se
 
-    def findNeighbors(self, di, t):
+    def findNeighbors(self, di, t, featU):
         #Armazena o valor máximo da norma do vetor di.
         r = 1
         #Variável auxiliar para armazenar o valor acumualado de similaridade.
-        acum = []
+        #acum = []
         #Vetor que armazena o id do documento candidato e o valor acumulado da similaridade entre o documento de consulta e o documento candidado.
         #[id_documento, valor_similaridade]
         A = []
+        for x in self.Index:
+            A = np.insert(A, x[0], x[0])
+
+        A = sorted(set(A))
+        for i in range(len(A)):
+            A[i] = 0
         #Fase de geração de candidatos (indexa o prefixo).
         #Percorre as características do vetor di (consulta) passado como parâmetro.
         for j in range(di.__len__()):
             if (di[j] > 0):
                 #Percorre o array Index com o registro (dc = id_documento, c = id_caracteristica, dcj = valor_caracteristica, norma_sufixo_dc = norma do sufixo do vetor candidato).
                 for (dc, c, dcj, norma_sufixo_dc) in self.Index:
-                    #Se o acumulado do documento maior que zero ou acumulado do documento diferente de zero e a norma do sufixo maior que threshold.
-                    if (math.sqrt(r) >= t):
-                        #Acumulado do documento recebe acumulado do documento + similaridade entre a característica de di e dc.
-                        acum[dc] = acum[dc] + (di[j] * dcj)
-                        #aux = [dc, acum[dc]]
-                        #Adciona à variável acumulador o id do documento e o valor acumulado da similaridade entre di e dc.
-                        A[dc].append([dc, acum[dc]])
-                        #calcula a norma do sufixo do vetor d a partir da característica j + 1.
-                        norma_sufixo_di = cosine.norm(di[j+1:])
-                        #Se acumulado do documento somado com norma do sufixo de di multiplicado com a norma do sufixo de dc é menor que o threshold
-                        #então zera o acumulado (funciona como poda).
-                        if ((A[dc]) + (norma_sufixo_di * norma_sufixo_dc) < t):
-                            A[dc] = 0
+                    #Se a característica do vetor dc é igual a característica do vetor di.
+                    if (c == j):
+                        #Se o acumulado do documento maior que zero ou acumulado do documento diferente de zero e a norma do sufixo maior que threshold.
+                        if (math.sqrt(r) >= t):
+                            acum = A[dc]
+                            #Acumulado do documento recebe acumulado do documento + similaridade entre a característica de di e dc.
+                            acum = acum + (di[j] * dcj)
+
+                            # Adciona à variável acumulador o id do documento e o valor acumulado da similaridade entre di e dc.
+                            A[dc] = acum
+
+                            #calcula a norma do sufixo do vetor d a partir da característica j + 1.
+                            norma_sufixo_di = cosine.norm(di[j+1:])
+                            #Se acumulado do documento somado com norma do sufixo de di multiplicado com a norma do sufixo de dc é menor que o threshold
+                            #então zera o acumulado (funciona como poda).
+                            if (acum + (norma_sufixo_di * norma_sufixo_dc) < t):
+                                A[dc] = acum
+                                #A = np.insert(A, dc , 0)
                 #subtrai da norma do sufixo o valor da característica j ao quadrado.
                 r = r - (di[j] * di[j])
 
         #Fase de verificação de candidatos (indexa o sufixo do vetor)
         #Percorre o vetor com os valores acumulados na fase de geração de candidatos.
-        for (dc, acumulado_dc) in A:
+        for (dc, acumulado_dc) in enumerate(A):
             #Se o valor acumulado (na fase candidate generation) do candidato k for maior que zero então faça.
             if (acumulado_dc > 0):
                 #Se o valor acumulado do candidado k somado com o suffix estimate do candidato k for maior que o threshold então
                 #se for menor o candidato será podado, pois passa para o próximo candidado no loop.
-                if (acumulado_dc + cosine.se[dc] >= t):
+                if (acumulado_dc + cosine.se[dc][1] >= t):
                     #Percorre as características do sufixo do vetor.
-                    for j in range( cosine.se[dc][2], di.__len__() ):
+                    for j in range( cosine.se[dc][2], len(di) ):
                         #se o valor da característica de dc é maior que zero e o valor da característica de di é maior que zero.
-                        if (dc[j] > 0 and di[j] > 0):
+                        if (featU[dc][j] > 0 and di[j] > 0):
                             #Acumula o valor da similaridade entre o vetor di e dc.
-                            A[dc] = A[dc] + di[j] * dc[j]
+                            A[dc] = A[dc] + (di[j] * featU[dc][j])
 
                             # Calcula a norma do sufixo do vetor d a partir da característica j.
                             norma_sufixo_d = cosine.norm(di[j:])
                             # Calcula a norma do sufixo do vetor dc a partir da característica j.
-                            norma_sufixo_dc = cosine.norm(dc[j:])
+                            norma_sufixo_dc = cosine.norm(featU[dc][j:])
                             #Se o valor acumulado somado como a norma do sufixo de d multiplicado com a norma do sufixo de dc
                             #for menor que threshold então passa para o próximo candidato do vetor acumulado.
                             if (A[dc] + (norma_sufixo_d * norma_sufixo_dc) < t):
@@ -256,7 +267,9 @@ class cosine(object):
                 #Se o acumulado do candidato for maior que threshold então adiciona o candidato e o seu valor acumulado
                 #no vetor de vetores similares de di.
                 if (A[dc] > t):
-                    self.Ndi.append(dc, A[dc])
+                    self.Ndi.append([dc, A[dc]])
+
+        print(self.Ndi)
 
 
 
@@ -295,7 +308,7 @@ for i in range (featU.__len__()):
     cosine.index(i, featU[i], Index, se, threshold)
 
 #for i in range (featU.__len__()):
-cosine.findNeighbors(featU[0], threshold)
+cosine.findNeighbors(featU[0], threshold, featU)
 
 
 print('Cosseno com os vetores sem normalização:')
