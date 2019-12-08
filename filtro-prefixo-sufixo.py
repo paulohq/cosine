@@ -182,9 +182,9 @@ class cosine(object):
                 b = b - (d[j] * d[j])
                 if (b < 0):
                     b = 0
-                #Calcula a norma do sufixo do vetor d a partir da característica j.
-                sufixo_d = cosine.norm(d[j+1:])
-                j_aux = j
+                #Calcula a norma do sufixo do vetor d a partir da característica j (produto escalar entre o vetor e ele mesmo).
+                sufixo_d = cosine.dot(d[j+1:], d[j+1:])
+                j_aux = j + 1
                 #norma = cosine.norm(d)
                 #id do documento, id da característica, o valor da característica e a norma do sufixo de (a partir da característica j).
                 r = [id_documento, j, d[j], sufixo_d]
@@ -232,7 +232,7 @@ class cosine(object):
                             A[dc] = acum
 
                             #calcula a norma do sufixo do vetor d a partir da característica j + 1.
-                            norma_sufixo_di = cosine.norm(di[j+1:])
+                            norma_sufixo_di = cosine.dot(di[j+1:],di[j+1:])
                             #Se acumulado do documento somado com norma do sufixo de di multiplicado com a norma do sufixo de dc é menor que o threshold
                             #então zera o acumulado (funciona como poda).
                             if (acum + (norma_sufixo_di * norma_sufixo_dc) < t):
@@ -257,9 +257,9 @@ class cosine(object):
                             A[dc] = A[dc] + (di[j] * featU[dc][j])
 
                             # Calcula a norma do sufixo do vetor d a partir da característica j.
-                            norma_sufixo_d = cosine.norm(di[j:])
+                            norma_sufixo_d = cosine.dot(di[j:], di[j:])
                             # Calcula a norma do sufixo do vetor dc a partir da característica j.
-                            norma_sufixo_dc = cosine.norm(featU[dc][j:])
+                            norma_sufixo_dc = cosine.dot(featU[dc][j:], featU[dc][j:])
                             #Se o valor acumulado somado como a norma do sufixo de d multiplicado com a norma do sufixo de dc
                             #for menor que threshold então passa para o próximo candidato do vetor acumulado.
                             if (A[dc] + (norma_sufixo_d * norma_sufixo_dc) < t):
