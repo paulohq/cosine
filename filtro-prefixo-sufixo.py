@@ -174,7 +174,7 @@ class cosine(object):
         #variável auxiliar para armazenar a posiçaõ da última característica do prefixo.
         j_aux = 0
         #Laço para percorres todas as características do vetor d
-        for j in range(d.__len__()):
+        for j in range(len(d)):
             #Se o valor da característica do vetor d for maior que zero e a raiz quadrada do sufixo do vetor d for maior ou igual ao threshold
             #então indexa o documento d, o valor da característica j e o sufixo de d (a partir da característica j).
             if ((d[j] > 0) & ( math.sqrt(b) >= t)):
@@ -193,16 +193,19 @@ class cosine(object):
             #else:
             #    break
 
+        prefixo_d = cosine.dot(d[0:j_aux], d[0:j_aux])
         #Armazena o id do documento, a norma do sufixo e o posição da última posição do prefixo indexado + 1 que é a primeira posição do sufixo.
         se_aux = [id_documento, sufixo_d, j_aux]
         # Armazena o sufixo do vetor d no vetor suffix estimate.
         self.se.append(se_aux)
         print("suffix extimate:", self.se)
+        print("prefix + suffix:", prefixo_d + sufixo_d)
         #return Index, se
 
     def findNeighbors(self, di, t, featU):
         #Armazena o valor máximo da norma do vetor di.
-        r = 1
+        r = []
+
         #Variável auxiliar para armazenar o valor acumualado de similaridade.
         #acum = []
         #Vetor que armazena o id do documento candidato e o valor acumulado da similaridade entre o documento de consulta e o documento candidado.
@@ -212,18 +215,22 @@ class cosine(object):
             A = np.insert(A, x[0], x[0])
 
         A = sorted(set(A))
+        r = sorted(set(A))
         for i in range(len(A)):
             A[i] = 0
+            r[i] = 1
+
+
         #Fase de geração de candidatos (indexa o prefixo).
         #Percorre as características do vetor di (consulta) passado como parâmetro.
-        for j in range(di.__len__()):
+        for j in range(len(di)):
             if (di[j] > 0):
                 #Percorre o array Index com o registro (dc = id_documento, c = id_caracteristica, dcj = valor_caracteristica, norma_sufixo_dc = norma do sufixo do vetor candidato).
                 for (dc, c, dcj, norma_sufixo_dc) in self.Index:
                     #Se a característica do vetor dc é igual a característica do vetor di.
                     if (c == j):
                         #Se o acumulado do documento maior que zero ou acumulado do documento diferente de zero e a norma do sufixo maior que threshold.
-                        if (math.sqrt(r) >= t):
+                        if (math.sqrt(r[dc]) >= t):
                             acum = A[dc]
                             #Acumulado do documento recebe acumulado do documento + similaridade entre a característica de di e dc.
                             acum = acum + (di[j] * dcj)
@@ -238,8 +245,8 @@ class cosine(object):
                             if (acum + (norma_sufixo_di * norma_sufixo_dc) < t):
                                 A[dc] = acum
                                 #A = np.insert(A, dc , 0)
-                #subtrai da norma do sufixo o valor da característica j ao quadrado.
-                r = r - (di[j] * di[j])
+                        #subtrai da norma do sufixo o valor da característica j ao quadrado.
+                        r[dc] = r[dc] - (di[j] * di[j])
 
         #Fase de verificação de candidatos (indexa o sufixo do vetor)
         #Percorre o vetor com os valores acumulados na fase de geração de candidatos.
@@ -268,7 +275,7 @@ class cosine(object):
                 #no vetor de vetores similares de di.
                 if (A[dc] > t):
                     self.Ndi.append([dc, A[dc]])
-
+        print("Vetores após aplicação do filtro:")
         print(self.Ndi)
 
 
@@ -276,12 +283,13 @@ class cosine(object):
 read = text()
 cosine = cosine()
 
-#feat = np.array(read.read_text("enwiki-vector-4.txt"))
+feat = np.array(read.read_text("enwiki-vector-4.txt"))
 
-feat = np.array([[5,0,9,6]
-                ,[0,8,4,7]
-                ,[3,4,8,0]
-                ,[9,3,7,5]])
+#feat = np.array([[5,0,9,6]
+#                ,[0,8,4,7]
+#                ,[3,4,8,0]
+#                ,[9,3,7,5]])
+
 #feat = np.array([[1,2,3,4,5,6,7,8,9,10],
 #                [0,0,0,0,0,1,2,3,4,5],
 #                [0,0,0,0,0,6,7,8,9,10],
@@ -311,23 +319,23 @@ for i in range (featU.__len__()):
 cosine.findNeighbors(featU[0], threshold, featU)
 
 
-print('Cosseno com os vetores sem normalização:')
-for linha in range(feat.__len__()):
-    cosine.cosine_between_vectors(feat[0], feat[linha])
+#print('Cosseno com os vetores sem normalização:')
+#for linha in range(feat.__len__()):
+#    cosine.cosine_between_vectors(feat[0], feat[linha])
 
-print('Cosseno com os vetores com normalização:')
-for linha in range(feat.__len__()):
-    cosine.dot_between_vectors(featU[0], featU[linha])
-print('---------------')
+#print('Cosseno com os vetores com normalização:')
+#for linha in range(feat.__len__()):
+#    cosine.dot_between_vectors(featU[0], featU[linha])
+#print('---------------')
 
 #seta a variavel consulta com o primeiro vetor da matriz featU.
-consulta = featU[0]
-vet_prefixo = cosine.intersect_between_vectors(consulta, featU)
-print('---------------')
-print('Tamanho do vetor feat:')
-print(feat.shape)
-print('---------------')
-print('Cosseno dos prefixos dos vetores com normalização:')
-cosine.dot_between_vectors_prefix(consulta, featU, vet_prefixo)
-print('---------------')
+#consulta = featU[0]
+#vet_prefixo = cosine.intersect_between_vectors(consulta, featU)
+#print('---------------')
+#print('Tamanho do vetor feat:')
+#print(feat.shape)
+#print('---------------')
+#print('Cosseno dos prefixos dos vetores com normalização:')
+#cosine.dot_between_vectors_prefix(consulta, featU, vet_prefixo)
+#print('---------------')
 
