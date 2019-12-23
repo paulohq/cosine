@@ -204,7 +204,7 @@ class cosine(object):
 
     def findNeighbors(self, di, t, featU):
         #Armazena o valor máximo da norma do vetor di.
-        r = []
+        r = 1
 
         #Variável auxiliar para armazenar o valor acumualado de similaridade.
         #acum = []
@@ -215,22 +215,27 @@ class cosine(object):
             A = np.insert(A, x[0], x[0])
 
         A = sorted(set(A))
-        r = sorted(set(A))
+        #r = sorted(set(A))
         for i in range(len(A)):
             A[i] = 0
-            r[i] = 1
+            #r[i] = 1
 
-
+        idx = []
         #Fase de geração de candidatos (indexa o prefixo).
         #Percorre as características do vetor di (consulta) passado como parâmetro.
         for j in range(len(di)):
             if (di[j] > 0):
+                idx.clear()
+                for l in self.Index:
+                    if (l[1] == j):
+                        idx.append(l)
+
                 #Percorre o array Index com o registro (dc = id_documento, c = id_caracteristica, dcj = valor_caracteristica, norma_sufixo_dc = norma do sufixo do vetor candidato).
-                for (dc, c, dcj, norma_sufixo_dc) in self.Index:
+                for (dc, c, dcj, norma_sufixo_dc) in idx:
                     #Se a característica do vetor dc é igual a característica do vetor di.
-                    if (c == j):
+                    #if (c == j):
                         #Se o acumulado do documento maior que zero ou acumulado do documento diferente de zero e a norma do sufixo maior que threshold.
-                        if (math.sqrt(r[dc]) >= t):
+                        if (math.sqrt(r) >= t):
                             acum = A[dc]
                             #Acumulado do documento recebe acumulado do documento + similaridade entre a característica de di e dc.
                             acum = acum + (di[j] * dcj)
@@ -243,10 +248,10 @@ class cosine(object):
                             #Se acumulado do documento somado com norma do sufixo de di multiplicado com a norma do sufixo de dc é menor que o threshold
                             #então zera o acumulado (funciona como poda).
                             if (acum + (norma_sufixo_di * norma_sufixo_dc) < t):
-                                A[dc] = acum
+                                A[dc] = 0
                                 #A = np.insert(A, dc , 0)
-                        #subtrai da norma do sufixo o valor da característica j ao quadrado.
-                        r[dc] = r[dc] - (di[j] * di[j])
+                #subtrai da norma do sufixo o valor da característica j ao quadrado.
+                r = r - (di[j] * di[j])
 
         #Fase de verificação de candidatos (indexa o sufixo do vetor)
         #Percorre o vetor com os valores acumulados na fase de geração de candidatos.
@@ -283,7 +288,7 @@ class cosine(object):
 read = text()
 cosine = cosine()
 
-feat = np.array(read.read_text("enwiki-vector-4.txt"))
+feat = np.array(read.read_text("enwiki-vector-1000.txt"))
 
 #feat = np.array([[5,0,9,6]
 #                ,[0,8,4,7]
@@ -311,7 +316,7 @@ for i in range(featU.__len__()):
 
 Index = [[] ]
 se = [[]]
-threshold = 0.8
+threshold = 0.2
 for i in range (featU.__len__()):
     cosine.index(i, featU[i], Index, se, threshold)
 
