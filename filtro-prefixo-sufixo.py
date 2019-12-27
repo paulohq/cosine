@@ -173,7 +173,7 @@ class cosine(object):
         b = 1
         #variável auxiliar para armazenar a posiçaõ da última característica do prefixo.
         j_aux = 0
-        #Laço para percorres todas as características do vetor d
+        #Laço para percorrer todas as características do vetor d
         for j in range(len(d)):
             #Se o valor da característica do vetor d for maior que zero e a raiz quadrada do sufixo do vetor d for maior ou igual ao threshold
             #então indexa o documento d, o valor da característica j e o sufixo de d (a partir da característica j).
@@ -215,10 +215,8 @@ class cosine(object):
             A = np.insert(A, x[0], x[0])
 
         A = sorted(set(A))
-        #r = sorted(set(A))
         for i in range(len(A)):
-            A[i] = 0
-            #r[i] = 1
+            A[i] = -1
 
         idx = []
         #Fase de geração de candidatos (indexa o prefixo).
@@ -230,25 +228,30 @@ class cosine(object):
                     if (l[1] == j):
                         idx.append(l)
 
+                if (j == 173):
+                    r = r
                 #Percorre o array Index com o registro (dc = id_documento, c = id_caracteristica, dcj = valor_caracteristica, norma_sufixo_dc = norma do sufixo do vetor candidato).
                 for (dc, c, dcj, norma_sufixo_dc) in idx:
                     #Se a característica do vetor dc é igual a característica do vetor di.
                     #if (c == j):
-                        #Se o acumulado do documento maior que zero ou acumulado do documento diferente de zero e a norma do sufixo maior que threshold.
-                        if (math.sqrt(r) >= t):
-                            acum = A[dc]
-                            #Acumulado do documento recebe acumulado do documento + similaridade entre a característica de di e dc.
-                            acum = acum + (di[j] * dcj)
+                    #Se o acumulado do documento maior que zero ou acumulado do documento diferente de zero e a norma do sufixo maior que threshold.
+                    if (A[dc] == -1 or (A[dc] > 0 and math.sqrt(r) >= t)):
+                        if (A[dc] == -1):
+                            A[dc] = 0
 
-                            # Adciona à variável acumulador o id do documento e o valor acumulado da similaridade entre di e dc.
-                            A[dc] = acum
+                        acum = A[dc]
+                        #Acumulado do documento recebe acumulado do documento + similaridade entre a característica de di e dc.
+                        acum = acum + (di[j] * dcj)
 
-                            #calcula a norma do sufixo do vetor d a partir da característica j + 1.
-                            norma_sufixo_di = cosine.dot(di[j+1:],di[j+1:])
-                            #Se acumulado do documento somado com norma do sufixo de di multiplicado com a norma do sufixo de dc é menor que o threshold
-                            #então zera o acumulado (funciona como poda).
-                            if (acum + (norma_sufixo_di * norma_sufixo_dc) < t):
-                                A[dc] = 0
+                        # Adciona à variável acumulador o id do documento e o valor acumulado da similaridade entre di e dc.
+                        A[dc] = acum
+
+                        #calcula a norma do sufixo do vetor d a partir da característica j + 1.
+                        norma_sufixo_di = cosine.dot(di[j+1:],di[j+1:])
+                        #Se acumulado do documento somado com norma do sufixo de di multiplicado com a norma do sufixo de dc é menor que o threshold
+                        #então zera o acumulado (funciona como poda).
+                        if (acum + (norma_sufixo_di * norma_sufixo_dc) < t):
+                            A[dc] = 0
                                 #A = np.insert(A, dc , 0)
                 #subtrai da norma do sufixo o valor da característica j ao quadrado.
                 r = r - (di[j] * di[j])
@@ -288,12 +291,12 @@ class cosine(object):
 read = text()
 cosine = cosine()
 
-feat = np.array(read.read_text("enwiki-vector-1000.txt"))
+#feat = np.array(read.read_text("enwiki-vector-4.txt"))
 
-#feat = np.array([[5,0,9,6]
-#                ,[0,8,4,7]
-#                ,[3,4,8,0]
-#                ,[9,3,7,5]])
+feat = np.array([[5,0,9,6]
+                ,[0,8,4,7]
+                ,[3,4,8,0]
+                ,[9,3,7,5]])
 
 #feat = np.array([[1,2,3,4,5,6,7,8,9,10],
 #                [0,0,0,0,0,1,2,3,4,5],
@@ -316,7 +319,7 @@ for i in range(featU.__len__()):
 
 Index = [[] ]
 se = [[]]
-threshold = 0.2
+threshold = 0.7
 for i in range (featU.__len__()):
     cosine.index(i, featU[i], Index, se, threshold)
 
