@@ -168,6 +168,9 @@ class cosine(object):
 
         print('-------------')
 
+    #O prefixo de um vetor di é indexado enquanto o sufixo l2 - norm, calculado em b, é superior ou igual ao nosso limite tdi(linhas 3 - 6).
+    #O sufixo l2 - norm em cada recurso indexado (linha 5) e o sufixo l2 - norm da parte não indexada de di(estimativa de sufixo, linha 7) também
+    #são armazenados, para serem usados em outros estágios do algoritmo. Denotamos por di≤ o prefixo indexado do objeto di e por di > seu sufixo não indexado.
     def index(self, id_documento, d, Index, se, t):
         #norma do sufixo do vetor recebe o valor máximo
         b = 1
@@ -177,7 +180,7 @@ class cosine(object):
         for j in range(len(d)):
             #Se o valor da característica do vetor d for maior que zero e a raiz quadrada do sufixo do vetor d for maior ou igual ao threshold
             #então indexa o documento d, o valor da característica j e o sufixo de d (a partir da característica j).
-            if ((d[j] > 0) & ( math.sqrt(b) >= t)):
+            if ((d[j] > 0) & ( b >= t)):
                 #calcula o valor da característica j ao quadrado e subtrai da norma do sufixo
                 b = b - (d[j] * d[j])
                 if (b < 0):
@@ -247,10 +250,12 @@ class cosine(object):
                         A[dc] = acum
 
                         #calcula a norma do sufixo do vetor d a partir da característica j + 1.
-                        norma_sufixo_di = cosine.dot(di[j+1:],di[j+1:])
+                        #norma_sufixo_di = cosine.dot(di[j+1:],di[j+1:])
+                        #Calcula a norma do sufixo do vetor di com o vetor dc a partir da característica j + 1;
+                        norma_sufixo_di_x_norma_sufixo_dc = cosine.dot(di[j+1:],featU[dc][j+1:])
                         #Se acumulado do documento somado com norma do sufixo de di multiplicado com a norma do sufixo de dc é menor que o threshold
                         #então zera o acumulado (funciona como poda).
-                        if (acum + (norma_sufixo_di * norma_sufixo_dc) < t):
+                        if ((acum + norma_sufixo_di_x_norma_sufixo_dc) < t):
                             A[dc] = 0
                                 #A = np.insert(A, dc , 0)
                 #subtrai da norma do sufixo o valor da característica j ao quadrado.
@@ -272,12 +277,14 @@ class cosine(object):
                             A[dc] = A[dc] + (di[j] * featU[dc][j])
 
                             # Calcula a norma do sufixo do vetor d a partir da característica j.
-                            norma_sufixo_d = cosine.dot(di[j:], di[j:])
+                            #norma_sufixo_d = cosine.dot(di[j:], di[j:])
                             # Calcula a norma do sufixo do vetor dc a partir da característica j.
-                            norma_sufixo_dc = cosine.dot(featU[dc][j:], featU[dc][j:])
+                            #norma_sufixo_dc = cosine.dot(featU[dc][j:], featU[dc][j:])
+
+                            norma_sufixo_di_x_norma_sufixo_dc1 = cosine.dot(di[j+1:], featU[dc][j+1:])
                             #Se o valor acumulado somado como a norma do sufixo de d multiplicado com a norma do sufixo de dc
                             #for menor que threshold então passa para o próximo candidato do vetor acumulado.
-                            if (A[dc] + (norma_sufixo_d * norma_sufixo_dc) < t):
+                            if ((A[dc] + norma_sufixo_di_x_norma_sufixo_dc1) < t):
                                 break
                 #Se o acumulado do candidato for maior que threshold então adiciona o candidato e o seu valor acumulado
                 #no vetor de vetores similares de di.
@@ -319,7 +326,7 @@ for i in range(featU.__len__()):
 
 Index = [[] ]
 se = [[]]
-threshold = 0.7
+threshold = 0.5
 for i in range (featU.__len__()):
     cosine.index(i, featU[i], Index, se, threshold)
 
