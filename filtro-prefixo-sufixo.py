@@ -232,8 +232,6 @@ class cosine(object):
                     if (l[1] == j):
                         idx.append(l)
 
-                if (j == 173):
-                    r = r
                 #Percorre o array Index com o registro (dc = id_documento, c = id_caracteristica, dcj = valor_caracteristica, norma_sufixo_dc = norma do sufixo do vetor candidato).
                 for (dc, c, dcj, norma_sufixo_dc) in idx:
                     #Se a característica do vetor dc é igual a característica do vetor di.
@@ -304,14 +302,14 @@ class cosine(object):
 read = text()
 cosine = cosine()
 
-#feat = np.array(read.read_text("enwiki-vector-4.txt"))
+# feat = np.array(read.read_text("enwiki-vector-100.txt"))
 
 feat = np.array([[5,0,9,6]
-                ,[0,8,4,7]
-                ,[3,4,8,0]
-                ,[9,3,7,5]])
+               ,[0,8,4,7]
+               ,[3,4,8,0]
+               ,[9,3,7,5]])
 
-#feat = np.array([[1,2,3,4,5,6,7,8,9,10],
+# feat = np.array([[1,2,3,4,5,6,7,8,9,10],
 #                [0,0,0,0,0,1,2,3,4,5],
 #                [0,0,0,0,0,6,7,8,9,10],
 #                [1,2,3,4,5,1,2,3,4,5]])
@@ -327,12 +325,22 @@ feat = np.array([[5,0,9,6]
 #print('---------------')
 
 featU = cosine.toUnitMatrix(feat)
+#print(cosine.norm(feat[0]))
+#print(cosine.norm(featU[0]))
+
+#norma = 0.0
+#for x in range(featU.__len__()):
+#    norma += math.pow(featU[0][x],2)
+
+#print(math.sqrt(norma))
+#print(math.sqrt(math.pow(featU[0][1],2) + math.pow(featU[0][2],2) + math.pow(featU[0][3],2)))
+
 for i in range(featU.__len__()):
     featNorm = cosine.norm(featU[i])
 
 Index = [[] ]
 se = [[]]
-threshold = 0.9043009564606904
+threshold = 0.09
 for i in range (featU.__len__()):
     cosine.index(i, featU[i], Index, se, threshold)
 
