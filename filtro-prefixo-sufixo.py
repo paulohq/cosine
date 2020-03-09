@@ -46,6 +46,25 @@ class text(object):
 
         filewriter.close()
 
+    # Grava o id do documento, id da feature e valor da feature no arquivo txt.
+    def write_tfidf(self, featU, out_path):
+        filewriter = open(out_path, 'w')
+        texto = ''
+        doc_id = 0
+        feature_id = 0
+        for d in featU:
+            texto = str(doc_id ) + ' '
+            for feature_value in d:
+                texto = texto + str(feature_id) + ':' + str(feature_value) + ' '
+                feature_id = feature_id + 1
+
+            doc_id = doc_id + 1;
+            feature_id = 0
+            texto = texto[0:texto.__len__() - 1]
+            filewriter.write(texto + '\n')
+
+        filewriter.close()
+
 class cosine(object):
     def __init__(self):
         self.corpus = []
@@ -325,6 +344,9 @@ feat = np.array([[5,0,9,6]
 #print('---------------')
 
 featU = cosine.toUnitMatrix(feat)
+
+
+read.write_tfidf(featU, "dataset.txt")
 #print(cosine.norm(feat[0]))
 #print(cosine.norm(featU[0]))
 
@@ -337,6 +359,7 @@ featU = cosine.toUnitMatrix(feat)
 
 for i in range(featU.__len__()):
     featNorm = cosine.norm(featU[i])
+
 
 Index = [[] ]
 se = [[]]
