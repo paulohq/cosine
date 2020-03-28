@@ -21,7 +21,7 @@ class text(object):
         for linha in file_reader:
             vector = []
             #print(linha)
-            vector = list(map(int, linha.rsplit(" ")))
+            vector = list(map(float, linha.rsplit(" ")))
             #print(vector)
 
             lista.append(vector)
@@ -104,6 +104,12 @@ class cosine(object):
 
     def suffix(self, x, p):
         return x[-p:]
+
+    # def tf_idf(self, x):
+    #     v =[]
+    #     for l in range(len([x])):
+    #         for c in range(len(x[l])):
+
 
     # calcula o cosseno entre um vetor especificado e os outros vetores da matriz de features (inclusive com ele mesmo).
     # x: índice do vetor que será comparado com os outros vetores.
@@ -213,6 +219,7 @@ class cosine(object):
                 r = [id_documento, j, d[j], sufixo_d]
                 # indexa o id do documento, o id da característica (mas precisa ser o id do documento), o valor da característica j e o sufixo de d (a partir da característica j).
                 self.Index.append(r)
+                print("doc_id = ", id_documento, " feature_id = ", j, " feature_value = ", d[j], " sufixo = ", sufixo_d)
             #else:
             #    break
 
@@ -321,12 +328,18 @@ class cosine(object):
 read = text()
 cosine = cosine()
 
-# feat = np.array(read.read_text("enwiki-vector-100.txt"))
+feat = np.array(read.read_text("enwiki-vector-tfidf-20.txt"))
 
-feat = np.array([[5,0,9,6]
-               ,[0,8,4,7]
-               ,[3,4,8,0]
-               ,[9,3,7,5]])
+# feat = np.array([[5,0,9,6]
+#                ,[0,8,4,7]
+#                ,[3,4,8,0]
+#                ,[9,3,7,5]])
+
+# feat = np.array([[0.0, 0.0, 0.0, 0.4355110509302231, 0.0, 0.0, 0.4355110509302231, 0.4355110509302231, 0.0, 0.0, 0.0, 0.0, 0.22726773327567476, 0.4355110509302231, 0.4355110509302231, 0.0]
+#                 ,[0.4432738148936904, 0.4432738148936904, 0.4432738148936904, 0.0, 0.0, 0.0, 0.0, 0.0, 0.4432738148936904, 0.0, 0.0, 0.0, 0.46263733109032296, 0.0, 0.0,0.0]
+#                 ,[0.0, 0.0, 0.0, 0.0, 0.0, 0.4945120594211411, 0.0, 0.0, 0.0, 0.0, 0.0, 0.4945120594211411, 0.5161138142514549, 0.0, 0.0, 0.4945120594211411]
+#                 ,[0.0, 0.0, 0.0, 0.0, 0.5528053199908667, 0.0, 0.0, 0.0, 0.0, 0.5528053199908667, 0.5528053199908667, 0.0, 0.2884767487500274, 0.0, 0.0, 0.0]])
+
 
 # feat = np.array([[1,2,3,4,5,6,7,8,9,10],
 #                [0,0,0,0,0,1,2,3,4,5],
@@ -343,10 +356,12 @@ feat = np.array([[5,0,9,6]
 #print(cosine.suffix(x,2))
 #print('---------------')
 
+
+
 featU = cosine.toUnitMatrix(feat)
 
 
-read.write_tfidf(featU, "dataset.txt")
+read.write_tfidf(featU, "dataset-20.txt")
 #print(cosine.norm(feat[0]))
 #print(cosine.norm(featU[0]))
 
@@ -363,12 +378,12 @@ for i in range(featU.__len__()):
 
 Index = [[] ]
 se = [[]]
-threshold = 0.09
+threshold = 0.0
 for i in range (featU.__len__()):
     cosine.index(i, featU[i], Index, se, threshold)
 
 #for i in range (featU.__len__()):
-cosine.findNeighbors(featU[0], threshold, featU)
+cosine.findNeighbors(featU[2], threshold, featU)
 
 
 #print('Cosseno com os vetores sem normalização:')

@@ -186,7 +186,7 @@ read = text()
 cosine = cosine()
 pre = pre_processing()
 
-cosine.corpus = read.read_text("enwiki-4.txt")
+cosine.corpus = read.read_text("enwiki-20.txt")
 
 cosine.norm_corpus = pre.normalize_corpus(cosine.corpus)
 
@@ -218,8 +218,28 @@ for row in range(features.shape[0]):
     #print(feat[row])
 
 print (feat)
+#read.write_text(feat, "enwiki-vector-tfidf-4.txt")
 
-read.write_text(feat, "enwiki-vector-4.txt")
+#TFIDF
+vectorizer = TfidfVectorizer()
+vectors = vectorizer.fit_transform(cosine.norm_corpus)
+feature_names = vectorizer.get_feature_names()
+dense = vectors.todense()
+denselist = dense.tolist()
+dfsk = pd.DataFrame(denselist, columns=feature_names)
+
+featTFIDF = []
+for row in range(dense.shape[0]):
+    linha = []
+    for column in range(dense.shape[1]):
+        linha.append(dense[row,column])
+        #print(feature_names[column], ' - ' , feat[row, column])
+    featTFIDF.append(linha)
+    #print(feat[row])
+
+print (featTFIDF)
+
+read.write_text(featTFIDF, "enwiki-vector-tfidf-20.txt")
 
 
 new_doc_features = bow_vectorizer.transform(new_doc)
