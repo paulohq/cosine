@@ -1,5 +1,6 @@
 #Importa parte do dataset enwiki (arquivo enwiki-20.txt),
-# faz a normalização dos textos, gera um bag of words e cria um arquivo com as contagens para cada feature (enwiki-vector.txt).
+# faz a normalização dos textos, gera um bag of words e cria um arquivo com as contagens para cada feature (enwiki-vector-9999.txt).
+#Também calcula o TF-IDF para estes textos e gera o arquivo enwiki-vetor-tfidf-9999.txt
 
 import numpy
 import csv
@@ -220,7 +221,7 @@ for row in range(features.shape[0]):
 print (feat)
 #read.write_text(feat, "enwiki-vector-tfidf-4.txt")
 
-#TFIDF
+#TFIDF - gera o tfidf para o corpus passado como parâmetor.
 vectorizer = TfidfVectorizer()
 vectors = vectorizer.fit_transform(cosine.norm_corpus)
 feature_names = vectorizer.get_feature_names()
@@ -239,6 +240,7 @@ for row in range(dense.shape[0]):
 
 print (featTFIDF)
 
+#grava o arquivo com o tfidf gerado para o corpus.
 read.write_text(featTFIDF, "enwiki-vector-tfidf-20.txt")
 
 

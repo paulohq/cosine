@@ -1,3 +1,5 @@
+# teste de geração de tfidf do corpus
+
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.corpus import stopwords
