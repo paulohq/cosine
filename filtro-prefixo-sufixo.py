@@ -9,6 +9,8 @@ import scipy.sparse as sp
 from numpy.linalg import norm
 import math
 
+import struct
+
 
 class text(object):
     def __init__(self):
@@ -64,6 +66,75 @@ class text(object):
             filewriter.write(texto + '\n')
 
         filewriter.close()
+
+    #Grava arquivo binário com os documento e features, formato:
+    #doc_id feature1_id feature1_value feature2_id feature2_value feature3_id feature3_value ...
+    def write_tfidf_binary(self, featU, out_path = 'bin_file_tfidf'):
+
+        fd_out = open(out_path, 'wb')
+
+        # [4-byte RECORD SIZE][4-byte ID_DOC][4-byte FEATURE_ID][4-byte FEATURE_VALUE]
+        # format: <IL999999999999If
+
+        doc_id = 0
+        feature_id = []
+        feature_value = []
+        fmt = ''
+        for d in featU:
+            count = 0;
+            feature_id = []
+            feature_value = []
+            for feat_id in range(len(d)):
+                if (d[feat_id] != 0):
+                    count += 1
+                    feature_id.append(feat_id)
+                    feature_value.append(d[feat_id])
+
+            fmt = '<IL'+str(count)+'I'+str(count)+'f'
+            entry = struct.pack(fmt, (count * 2) + 1, doc_id, *feature_id, *feature_value)
+            fd_out.write(entry)
+            fd_out.flush()
+            doc_id += 1
+
+        fd_out.close()
+
+    def read_line_by_line(self, file):
+        with open('bin-dataset-20', "rb") as text_file:
+            # One option is to call readline() explicitly
+            # single_line = text_file.readline()
+
+            # It is easier to use a for loop to iterate each line
+            for line in text_file:
+                print(line)
+
+    #Lê arquivo binário com os documento e features, formato:
+    #doc_id feature1_id feature1_value feature2_id feature2_value feature3_id feature3_value ...
+    def read_tfidf_binary(self, fname = 'bin_file_tfidf'):
+
+        #file = open(fname, 'rb')
+
+        # [4-byte RECORD SIZE][4-byte ID_DOC][4-byte FEATURE_ID][4-byte FEATURE_VALUE]
+        # format: <IL999999999999If
+
+        with open(fname, "rb") as fid:
+            while True:
+                for i in range(2):
+                    size_record = fid.read(4)
+                    if not size_record: break
+
+                    size = struct.unpack('<I', size_record)
+                    fmt = '<L'+str(int((size[0]-1)/2))+'I'+str(int((size[0]-1)/2))+'f'
+
+                    record = fid.read(size[0])
+
+                    if not size: break
+
+                    tupla, = struct.unpack(fmt, record)
+                else:
+                    continue
+                break
+        fid.close()
+
 
 class cosine(object):
     def __init__(self):
@@ -361,7 +432,10 @@ feat = np.array(read.read_text("enwiki-vector-tfidf-20.txt"))
 featU = cosine.toUnitMatrix(feat)
 
 
-read.write_tfidf(featU, "dataset-20.txt")
+#read.write_tfidf(featU, "dataset-20.txt")
+read.write_tfidf_binary(featU, 'bin-dataset-20')
+read.read_tfidf_binary('bin-dataset-20')
+
 #print(cosine.norm(feat[0]))
 #print(cosine.norm(featU[0]))
 
