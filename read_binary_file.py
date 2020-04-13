@@ -193,4 +193,4 @@ class read_file(object):
 
 read = read_file()
 
-read.read_tfidf_pairs_binary('bin-dataset-20')
+read.read_tfidf_pairs_binary('bin-dataset-20-pairs')

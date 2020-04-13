@@ -8,6 +8,8 @@ import gensim
 import scipy.sparse as sp
 from numpy.linalg import norm
 import math
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 
 import struct
 
@@ -74,8 +76,8 @@ class text(object):
 
         fd_out = open(out_path, 'wb')
 
-        # [4-byte ID_DOC][4-byte RECORD SIZE][4-byte FEATURE_ID][4-byte FEATURE_VALUE]...
-        # format: <IL999999999999If
+        # [4-byte ID_DOC][4-byte RECORD SIZE][4-byte FEATURE_ID][8-byte FEATURE_VALUE]...
+        # format: <IL999999999999Id
 
         doc_id = 0
         feature_id = []
@@ -91,7 +93,7 @@ class text(object):
                     feature_id.append(feat_id)
                     feature_value.append(d[feat_id])
 
-            fmt = '<LI'+str(count)+'I'+str(count)+'f'
+            fmt = '<LI'+str(count)+'I'+str(count)+'d'
             entry = struct.pack(fmt, doc_id, count, *feature_id, *feature_value)
             fd_out.write(entry)
             fd_out.flush()
@@ -107,7 +109,7 @@ class text(object):
         fd_out = open(out_path, 'wb')
 
         # [4-byte ID_DOC][4-byte FEATURE_AMOUNT][4-byte FEATURE_ID][4-byte FEATURE_VALUE]...
-        # format: <LIIf
+        # format: <LIId
 
         doc_id = 0
         feature_id = []
@@ -118,10 +120,10 @@ class text(object):
             feature_id = []
             feature_value = []
             for feat_id in range(len(d)):
-                if (d[feat_id] != 0):
-                    count += 1
-                    feature_id.append(feat_id)
-                    feature_value.append(d[feat_id])
+                #if (d[feat_id] != 0):
+                count += 1
+                feature_id.append(feat_id)
+                feature_value.append(d[feat_id])
 
             #Grava o id do documento e a quantidade de features do documento.
             fmt = '<LI'
@@ -132,7 +134,7 @@ class text(object):
             #Percorre os vetores com os id's e valores das features
             for i in range(feature_id.__len__()):
                 #Grava cada par de id e valor das features.
-                fmt = '<If'
+                fmt = '<Id'
                 entry = struct.pack(fmt, feature_id[i], feature_value[i])
                 fd_out.write(entry)
                 fd_out.flush()
@@ -154,7 +156,7 @@ class text(object):
     # record size (quantidade de feature_id e feature value do documento) doc_id feature1_id feature1_value feature2_id feature2_value feature3_id feature3_value ...
     def read_tfidf_binary(self, fname = 'bin_file_tfidf'):
         # [4-byte ID_DOC][4-byte RECORD SIZE][4-byte FEATURE_ID][4-byte FEATURE_VALUE]
-        # format: <LI999999999999If
+        # format: <LI999999999999Id
         docs = []
         feat = []
         # Abre arquivo binário para leitura
@@ -172,7 +174,7 @@ class text(object):
                     # adiciona o id do documento em uma lista.
                     docs.append(id_doc[0])
 
-                    # recupera os primeiros 4 bytes do arquico com a quantidade de features do documento.
+                    # recupera os primeiros 4 bytes do arquivo com a quantidade de features do documento.
                     size_record = fid.read(4)
                     if not size_record: break
 
@@ -192,10 +194,10 @@ class text(object):
                     # Laço para percorrer a quantidade de features (feature_value) que o documento tem.
                     for j in range(sz):
                         # recupera o valor da feature armazenado em 4 bytes.
-                        b_feature_value = fid.read(4)
+                        b_feature_value = fid.read(8)
                         if not b_feature_value: break
                         # armazena o valor da feature codificada em numérico (float).
-                        feature_value = struct.unpack('<f', b_feature_value)
+                        feature_value = struct.unpack('<d', b_feature_value)
                         feat_value.append(feature_value[0])
 
                     # adiciona os vetores com os id's e valores das feautures.
@@ -207,7 +209,7 @@ class text(object):
         fid.close()
 
     # Lê arquivo binário com os documento e features, formato:
-    # record size (quantidade de feature_id e feature value do documento) doc_id feature1_id feature1_value feature2_id feature2_value feature3_id feature3_value ...
+    # doc_id record size (quantidade de feature_id e feature value do documento)  feature1_id feature1_value feature2_id feature2_value feature3_id feature3_value ...
     def read_tfidf_pairs_binary(self, fname='bin_file_tfidf'):
         # file = open(fname, 'rb')
 
@@ -241,10 +243,10 @@ class text(object):
                     #Laço para percorrer a quantidade de features (feature_id) que o documento tem.
                     for i in range((sz)):
                         #recupera o id da feature armazenado em 4 bytes.
-                        b_feature = fid.read(8)
+                        b_feature = fid.read(12)
                         if not b_feature: break
                         #armazena o id da feature codificada em numérico (integer).
-                        pair = struct.unpack('<If', b_feature)
+                        pair = struct.unpack('<Id', b_feature)
                         pairs.append(pair)
 
                     # adiciona os vetores com os id's e valores das feautures.
@@ -265,6 +267,21 @@ class cosine(object):
 
     def norm(self, x):
         return np.linalg.norm(x)
+
+    def l2_norm(self, x):
+        n = 0.0
+        y = 0
+        for i in range(len(x)):
+            if (x[i] != 0):
+                n = n + x[i] * x[i]
+                #print("i = {0:d} - n = {1:22.20f} - feature =  {2:22.20f}".format(i, n, x[i]))
+                y += 1
+                #print("i = %d - n = %22.20f - feature = %22.20f\n", i, n, x[i])
+
+        n = math.sqrt(n)
+        print("y = ", y)
+
+        return n
 
     def dot(self, x, y):
         sum = 0
@@ -409,7 +426,7 @@ class cosine(object):
                 r = [id_documento, j, d[j], sufixo_d]
                 # indexa o id do documento, o id da característica (mas precisa ser o id do documento), o valor da característica j e o sufixo de d (a partir da característica j).
                 self.Index.append(r)
-                print("doc_id = ", id_documento, " feature_id = ", j, " feature_value = ", d[j], " sufixo = ", sufixo_d)
+                #print("doc_id = ", id_documento, " feature_id = ", j, " feature_value = ", d[j], " sufixo = ", sufixo_d)
             #else:
             #    break
 
@@ -450,6 +467,7 @@ class cosine(object):
 
                 #Percorre o array Index com o registro (dc = id_documento, c = id_caracteristica, dcj = valor_caracteristica, norma_sufixo_dc = norma do sufixo do vetor candidato).
                 for (dc, c, dcj, norma_sufixo_dc) in idx:
+
                     #Se a característica do vetor dc é igual a característica do vetor di.
                     #if (c == j):
                     #Se o acumulado do documento maior que zero ou acumulado do documento diferente de zero e a norma do sufixo maior que threshold.
@@ -469,6 +487,10 @@ class cosine(object):
                         norma_sufixo_di = cosine.norm(di[j + 1:])
                         #Calcula a norma do sufixo do vetor di com o vetor dc a partir da característica j + 1;
                         norma_sufixo_di_x_norma_sufixo_dc = norma_sufixo_di * norma_sufixo_dc
+
+                        # if (dc == 7):
+                        #     print("feature = ", c, "acum = ", acum, "norma_sufixo_di = ", norma_sufixo_di, "norma_sufixo_dc = ", norma_sufixo_dc, "norma_sufixo_di_x_norma_sufixo_dc = ", norma_sufixo_di_x_norma_sufixo_dc)
+
                         #norma_sufixo_di_x_norma_sufixo_dc = cosine.dot(di[j+1:],featU[dc][j+1:])
                         #Se acumulado do documento somado com norma do sufixo de di multiplicado com a norma do sufixo de dc é menor que o threshold
                         #então zera o acumulado (funciona como poda).
@@ -518,12 +540,38 @@ class cosine(object):
 read = text()
 cosine = cosine()
 
-feat = np.array(read.read_text("enwiki-vector-tfidf-20.txt"))
+#Lê o dataset do arquivo (tf-idf)
+#feat = np.array(read.read_text("enwiki-vector-tfidf-20.txt"))
+
+#Cria 4 documentos (dataset) para construir a matriz com os tf-idf's.
+# documentA = "the man keep walking" #'the man went out for a walk'
+# documentB = "the children just study" #'the children sat around the fire'
+# documentC = "the woman teach the lesson"
+# documentD = "woman teach the man" #"the idiot speak shit"
+
+documentA = "the man keeps walking" #'the man went out for a walk'
+documentB = "the children study" #'the children sat around the fire'
+documentC = "the woman teach the lesson"
+documentD = "the woman teach the children" #"the idiot speak shit"
+
+#Cria matriz com tf-idf
+vectorizer = TfidfVectorizer()
+vectors = vectorizer.fit_transform([documentA, documentB, documentC, documentD])
+feature_names = vectorizer.get_feature_names()
+print("feature names:", feature_names)
+dense = vectors.todense()
+denselist = dense.tolist()
+dfsk = pd.DataFrame(denselist, columns=feature_names)
+
+#seta a matriz de features com as features criadas acima.
+feat = np.array(denselist)
 
 # feat = np.array([[5,0,9,6]
 #                ,[0,8,4,7]
 #                ,[3,4,8,0]
 #                ,[9,3,7,5]])
+
+
 
 # feat = np.array([[0.0, 0.0, 0.0, 0.4355110509302231, 0.0, 0.0, 0.4355110509302231, 0.4355110509302231, 0.0, 0.0, 0.0, 0.0, 0.22726773327567476, 0.4355110509302231, 0.4355110509302231, 0.0]
 #                 ,[0.4432738148936904, 0.4432738148936904, 0.4432738148936904, 0.0, 0.0, 0.0, 0.0, 0.0, 0.4432738148936904, 0.0, 0.0, 0.0, 0.46263733109032296, 0.0, 0.0,0.0]
@@ -553,8 +601,12 @@ featU = cosine.toUnitMatrix(feat)
 
 #read.write_tfidf(featU, "dataset-20.txt")
 #read.write_tfidf__binary(featU, 'bin-dataset-20')
-read.write_tfidf_binary(featU, 'bin-dataset-20')
-read.read_tfidf_binary('bin-dataset-20')
+
+for i in range(featU.__len__()):
+    cosine.l2_norm(featU[i])
+
+#read.write_tfidf_pairs_binary(featU, 'bin-dataset-20-pairs-double')
+#read.read_tfidf_pairs_binary('bin-dataset-20-pairs-double')
 
 #print(cosine.norm(feat[0]))
 #print(cosine.norm(featU[0]))
@@ -572,12 +624,12 @@ for i in range(featU.__len__()):
 
 Index = [[] ]
 se = [[]]
-threshold = 0.0
+threshold = 0.7
 for i in range (featU.__len__()):
     cosine.index(i, featU[i], Index, se, threshold)
 
 #for i in range (featU.__len__()):
-cosine.findNeighbors(featU[2], threshold, featU)
+cosine.findNeighbors(featU[3], threshold, featU)
 
 
 #print('Cosseno com os vetores sem normalização:')
